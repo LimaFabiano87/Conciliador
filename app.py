@@ -50,8 +50,9 @@ relatorio_filtrado = relatorio[
     (relatorio["Data Pagamento"] >= pd.to_datetime(min_data)) &
     (relatorio["Data Pagamento"] <= pd.to_datetime(max_data))
 ]
-        st.subheader("📊 Relatório de Conciliação Filtrado")
-        st.dataframe(relatorio_filtrado, use_container_width=True)
+
+st.subheader("📊 Relatório de Conciliação Filtrado")
+st.dataframe(relatorio_filtrado, use_container_width=True)
 
         # ✅ Exportar relatório filtrado
         output = BytesIO()
@@ -67,5 +68,6 @@ relatorio_filtrado = relatorio[
         )
     else:
         st.warning("Nenhum vínculo encontrado com os critérios atuais.")
+
 
 
