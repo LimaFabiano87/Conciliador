@@ -5,7 +5,7 @@ import plotly.express as px
 
 st.set_page_config(page_title="Ferreira Lima Contabilidade Digital", page_icon="📊", layout="wide")
 
-# Estilo visual centralizado
+# Cabeçalho visual
 st.markdown("""
     <style>
         .logo-container {
@@ -43,8 +43,7 @@ if uploaded_file:
     if not relatorio.empty:
         relatorio["Conciliado Manual"] = False
 
-        # Editor interativo
-        st.subheader("📄 Lançamentos Importados")
+        # ✅ Editor interativo
         relatorio_editado = st.data_editor(
             relatorio,
             column_config={
@@ -57,7 +56,7 @@ if uploaded_file:
             num_rows="dynamic"
         )
 
-        # Gráficos e alertas lado a lado, acima dos lançamentos
+        # ✅ Gráficos e alertas acima dos lançamentos
         st.markdown("---")
         st.subheader("📊 Visão Geral da Conciliação")
 
@@ -109,7 +108,7 @@ if uploaded_file:
             st.metric("Marcados como conciliados", len(manual_sim))
             st.metric("Ainda não marcados", len(manual_nao))
 
-        # Ocultar/exibir filtros
+        # ✅ Ocultar/exibir filtros
         st.markdown("---")
         mostrar_filtros = st.checkbox("🎛️ Exibir filtros avançados", value=True)
 
