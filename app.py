@@ -151,5 +151,3 @@ if uploaded_file:
             file_name="relatorio_mensal.csv",
             mime="text/csv"
         )
-        )
-
