@@ -43,11 +43,11 @@ def conciliar_lancamentos(file):
             conciliado = 'Sim' if diff == 0 else 'Não'
             relacionamentos.append({
                 'Valor Pago': round(pag['Valor'], 2),
-                'Data Pagamento': pag['Data'].date(),
-                'Texto Pagamento': pag['Histórico'],
+                'Data Pagamento': pag['Data'].strftime('%d/%m/%Y'),
+                'Histórico Pagamento': pag['Histórico'],
                 'Valor NF': round(nota['Valor'], 2),
-                'Data NF': nota['Data'].date(),
-                'Texto NF': nota['Histórico'],
+                'Data NF': nota['Data'].strftime('%d/%m/%Y'),
+                'Histórico NF': nota['Histórico'],
                 'Fornecedor': nota['Fornecedor'],
                 'Diferença': round(diff, 2),
                 'Confiabilidade': confiabilidade,
