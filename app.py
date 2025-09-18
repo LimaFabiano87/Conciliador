@@ -80,7 +80,7 @@ if uploaded_file and not relatorio.empty:
             (relatorio_filtrado["Conciliado Manual"] == False)
         ]
 
-    # ✅ Visualização única com edição e ordenação
+    # ✅ Visualização unificada com ordenação por clique
     st.subheader("📄 Lançamentos Importados")
     relatorio_editado = st.data_editor(
         relatorio_filtrado,
