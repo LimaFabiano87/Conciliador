@@ -3,15 +3,15 @@ import pandas as pd
 from motor_conciliacao import conciliar_lancamentos
 from io import BytesIO
 
-# ✅ Configuração da página
+# ✅ Configuração da página em tela cheia
 st.set_page_config(
     page_title="Ferreira Lima Contabilidade Digital",
     page_icon="📊",
-    layout="centered"
+    layout="wide"
 )
 
-# ✅ Cabeçalho com logo e nome
-col1, col2 = st.columns([1, 5])
+# ✅ Cabeçalho com logo e nome da empresa
+col1, col2 = st.columns([1, 6])
 with col1:
     st.image("https://copilot.microsoft.com/th/id/BCO.ce40fb3b-b861-4175-b43b-9f5108be73e1.png", width=100)
 with col2:
@@ -29,7 +29,7 @@ if uploaded_file:
 
     if not relatorio.empty:
         st.subheader("📊 Relatório de Conciliação")
-        st.dataframe(relatorio)
+        st.dataframe(relatorio, use_container_width=True)
 
         # ✅ Exporta para Excel em memória
         output = BytesIO()
