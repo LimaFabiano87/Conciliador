@@ -49,7 +49,6 @@ with col_grafico:
         relatorio = conciliar_lancamentos(uploaded_file)
         if not relatorio.empty:
             relatorio["Conciliado Manual"] = False
-            relatorio["Status Final"] = relatorio["Conciliado"]
             totais = relatorio["Conciliado"].value_counts().reset_index()
             totais.columns = ["Status", "Quantidade"]
             tipo_grafico = st.radio("📈 Escolha o tipo de gráfico", ["Barras", "Pizza"])
@@ -96,10 +95,9 @@ if uploaded_file and not relatorio.empty:
     relatorio_editado = st.data_editor(
         relatorio_filtrado,
         column_config={
-            "Status Final": st.column_config.SelectboxColumn(
-                "Status Final",
-                options=["Conciliado", "Não Conciliado", "Revisar"],
-                help="Escolha o status final para este lançamento"
+            "Conciliado Manual": st.column_config.CheckboxColumn(
+                "Conciliado Manual",
+                help="Marque se você considera este lançamento conciliado"
             )
         },
         use_container_width=True,
@@ -109,7 +107,8 @@ if uploaded_file and not relatorio.empty:
     # ✅ Aplicar filtro após edição
     if mostrar_nao_conciliados_total:
         relatorio_editado = relatorio_editado[
-            relatorio_editado["Status Final"] != "Conciliado"
+            (relatorio_editado["Conciliado"] == "Não") &
+            (relatorio_editado["Conciliado Manual"] == False)
         ]
 
     st.download_button(
@@ -123,11 +122,12 @@ if uploaded_file and not relatorio.empty:
     st.subheader("🚨 Alertas Automáticos")
 
     alertas = relatorio_editado[
-        relatorio_editado["Status Final"] != "Conciliado"
+        (relatorio_editado["Conciliado"] == "Não") &
+        (relatorio_editado["Conciliado Manual"] == False)
     ]
 
     if not alertas.empty:
-        with st.expander(f"⚠️ {len(alertas)} lançamentos marcados como não conciliados ou revisar (clique para ver)", expanded=True):
+        with st.expander(f"⚠️ {len(alertas)} lançamentos não conciliados automaticamente e não marcados manualmente (clique para ver)", expanded=True):
             st.dataframe(alertas, use_container_width=True)
     else:
-        st.success("✅ Todos os lançamentos foram conciliados ou revisados manualmente.")
+        st.success("✅ Todos os lançamentos foram conciliados automaticamente ou marcados manualmente.")
