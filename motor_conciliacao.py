@@ -7,7 +7,7 @@ def conciliar_lancamentos(file):
     buffer = BytesIO(file.read())
 
     # Lê o Excel corretamente via buffer
-    df = pd.read_excel(buffer, engine='openpyxl', header=7)
+    df = pd.read_excel(buffer, engine=None, header=7)
 
     df['Débito'] = pd.to_numeric(df['Débito'], errors='coerce').fillna(0)
     df['Crédito'] = pd.to_numeric(df['Crédito'], errors='coerce').fillna(0)
@@ -48,3 +48,4 @@ def conciliar_lancamentos(file):
             })
 
     return pd.DataFrame(relacionamentos)
+
