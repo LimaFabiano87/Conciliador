@@ -31,6 +31,7 @@ with col_grafico:
     if uploaded_file:
         relatorio = conciliar_lancamentos(uploaded_file)
         if not relatorio.empty:
+            relatorio["Conciliado Manual"] = False
             totais = relatorio["Conciliado"].value_counts().reset_index()
             totais.columns = ["Status", "Quantidade"]
             tipo_grafico = st.radio("📈 Escolha o tipo de gráfico", ["Barras", "Pizza"])
@@ -60,7 +61,7 @@ if uploaded_file and not relatorio.empty:
     fornecedores = st.multiselect("Fornecedor", relatorio["Fornecedor"].unique(), default=relatorio["Fornecedor"].unique())
     meses = st.multiselect("Mês", relatorio["Mês"].unique(), default=relatorio["Mês"].unique())
 
-    mostrar_nao_conciliados = st.checkbox("🔍 Mostrar apenas os que faltam conciliar", value=False)
+    mostrar_nao_conciliados_total = st.checkbox("🔍 Mostrar apenas os que ainda não foram conciliados (automático ou manual)", value=False)
 
     relatorio_filtrado = relatorio[
         (relatorio["Confiabilidade"].isin(confiabilidades)) &
@@ -68,33 +69,41 @@ if uploaded_file and not relatorio.empty:
         (relatorio["Mês"].isin(meses))
     ]
 
-    if mostrar_nao_conciliados:
-        relatorio_filtrado = relatorio_filtrado[relatorio_filtrado["Conciliado"] == "Não"]
+    if mostrar_nao_conciliados_total:
+        relatorio_filtrado = relatorio_filtrado[
+            (relatorio_filtrado["Conciliado"] == "Não") &
+            (relatorio_filtrado["Conciliado Manual"] == False)
+        ]
 
-    st.subheader("📊 Relatório Filtrado")
-    st.dataframe(relatorio_filtrado, use_container_width=True)
+    st.subheader("📝 Marque os lançamentos conciliados manualmente")
+    relatorio_editado = st.data_editor(
+        relatorio_filtrado,
+        column_config={
+            "Conciliado Manual": st.column_config.CheckboxColumn("Conciliado Manual", help="Marque se você considera este lançamento conciliado")
+        },
+        use_container_width=True,
+        num_rows="dynamic"
+    )
 
     # Exportação por mês
     st.download_button(
         label="📥 Baixar relatório por mês",
-        data=relatorio_filtrado.to_csv(index=False).encode("utf-8"),
+        data=relatorio_editado.to_csv(index=False).encode("utf-8"),
         file_name=f"relatorio_{meses[0] if meses else 'mensal'}.csv",
         mime="text/csv"
     )
 
-    # Alertas automáticos
+    # Alerta automático clicável
     st.markdown("---")
     st.subheader("🚨 Alertas Automáticos")
 
-    alertas = relatorio_filtrado[
-        (relatorio_filtrado["Conciliado"] == "Não") &
-        (relatorio_filtrado["Valor Pago"] > 10000)
+    alertas = relatorio_editado[
+        (relatorio_editado["Conciliado"] == "Não") &
+        (relatorio_editado["Conciliado Manual"] == False)
     ]
 
     if not alertas.empty:
-        st.error(f"⚠️ {len(alertas)} lançamentos não conciliados acima de R$ 10.000 detectados.")
-        st.dataframe(alertas, use_container_width=True)
+        with st.expander(f"⚠️ {len(alertas)} lançamentos não conciliados automaticamente (clique para ver)", expanded=True):
+            st.dataframe(alertas, use_container_width=True)
     else:
-        st.success("✅ Nenhum lançamento não conciliado acima de R$ 10.000.")
-
-
+        st.success("✅ Todos os lançamentos foram conciliados automaticamente ou marcados manualmente.")
