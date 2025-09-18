@@ -56,9 +56,15 @@ if uploaded_file and not relatorio.empty:
 
     relatorio["Mês"] = pd.to_datetime(relatorio["Data Pagamento"], format="%d/%m/%Y", errors="coerce").dt.to_period("M").astype(str)
 
+    def format_mes(m):
+        try:
+            return pd.to_datetime(m).strftime('%B/%Y')
+        except:
+            return m
+
     confiabilidades = st.multiselect("Confiabilidade", relatorio["Confiabilidade"].unique(), default=relatorio["Confiabilidade"].unique())
     fornecedores = st.multiselect("Fornecedor", relatorio["Fornecedor"].unique(), default=relatorio["Fornecedor"].unique())
-    meses = st.multiselect("Mês", relatorio["Mês"].unique(), default=relatorio["Mês"].unique())
+    meses = st.multiselect("Mês", relatorio["Mês"].unique(), default=relatorio["Mês"].unique(), format_func=format_mes)
 
     mostrar_nao_conciliados_total = st.checkbox("🔍 Mostrar apenas os que ainda não foram conciliados (automático ou manual)", value=False)
 
@@ -74,7 +80,8 @@ if uploaded_file and not relatorio.empty:
             (relatorio_filtrado["Conciliado Manual"] == False)
         ]
 
-    st.subheader("📝 Marque os lançamentos conciliados manualmente")
+    # ✅ Visualização única com edição e ordenação
+    st.subheader("📄 Lançamentos Importados")
     relatorio_editado = st.data_editor(
         relatorio_filtrado,
         column_config={
@@ -83,9 +90,6 @@ if uploaded_file and not relatorio.empty:
         use_container_width=True,
         num_rows="dynamic"
     )
-
-    st.subheader("📋 Visualização ordenável")
-    st.dataframe(relatorio_editado, use_container_width=True)
 
     st.download_button(
         label="📥 Baixar relatório por mês",
