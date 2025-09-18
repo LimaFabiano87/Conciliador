@@ -28,6 +28,7 @@ with col_grafico:
         relatorio = conciliar_lancamentos(uploaded_file)
         if not relatorio.empty:
             relatorio["Conciliado Manual"] = False
+            relatorio["Status Final"] = relatorio["Conciliado"]  # Inicia com o status automático
             totais = relatorio["Conciliado"].value_counts().reset_index()
             totais.columns = ["Status", "Quantidade"]
             tipo_grafico = st.radio("📈 Escolha o tipo de gráfico", ["Barras", "Pizza"])
@@ -72,16 +73,26 @@ if uploaded_file and not relatorio.empty:
 
     if mostrar_nao_conciliados_total:
         relatorio_filtrado = relatorio_filtrado[
-            (relatorio_filtrado["Conciliado"] == "Não") &
-            (relatorio_filtrado["Conciliado Manual"] == False)
+            (relatorio_filtrado["Status Final"] != "Conciliado")
         ]
 
     st.subheader("📄 Lançamentos Importados")
-    st.dataframe(relatorio_filtrado, use_container_width=True)
+    relatorio_editado = st.data_editor(
+        relatorio_filtrado,
+        column_config={
+            "Status Final": st.column_config.SelectboxColumn(
+                "Status Final",
+                options=["Conciliado", "Não Conciliado", "Revisar"],
+                help="Escolha o status final para este lançamento"
+            )
+        },
+        use_container_width=True,
+        num_rows="dynamic"
+    )
 
     st.download_button(
         label="📥 Baixar relatório por mês",
-        data=relatorio_filtrado.to_csv(index=False).encode("utf-8"),
+        data=relatorio_editado.to_csv(index=False).encode("utf-8"),
         file_name=f"relatorio_{meses[0] if meses else 'mensal'}.csv",
         mime="text/csv"
     )
@@ -89,13 +100,12 @@ if uploaded_file and not relatorio.empty:
     st.markdown("---")
     st.subheader("🚨 Alertas Automáticos")
 
-    alertas = relatorio_filtrado[
-        (relatorio_filtrado["Conciliado"] == "Não") &
-        (relatorio_filtrado["Conciliado Manual"] == False)
+    alertas = relatorio_editado[
+        (relatorio_editado["Status Final"] != "Conciliado")
     ]
 
     if not alertas.empty:
-        with st.expander(f"⚠️ {len(alertas)} lançamentos não conciliados automaticamente (clique para ver)", expanded=True):
+        with st.expander(f"⚠️ {len(alertas)} lançamentos marcados como não conciliados ou revisar (clique para ver)", expanded=True):
             st.dataframe(alertas, use_container_width=True)
     else:
-        st.success("✅ Todos os lançamentos foram conciliados automaticamente ou marcados manualmente.")
+        st.success("✅ Todos os lançamentos foram conciliados ou revisados manualmente.")
