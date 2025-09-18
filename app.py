@@ -56,13 +56,13 @@ if uploaded_file:
             num_rows="dynamic"
         )
 
-        # Gráficos e alertas acima dos lançamentos
+        # Gráficos e alertas lado a lado
         st.markdown("---")
         st.subheader("📊 Visão Geral da Conciliação")
 
-        col_graficos, col_alertas = st.columns(2)
+        col1, col2 = st.columns([2, 1])  # Gráficos à esquerda, alertas à direita
 
-        with col_graficos:
+        with col1:
             st.markdown("#### Conciliação Automática")
             auto_data = relatorio_editado["Conciliado"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
             fig_auto = px.pie(
@@ -92,7 +92,7 @@ if uploaded_file:
             fig_manual.update_layout(title_x=0.5)
             st.plotly_chart(fig_manual, use_container_width=True)
 
-        with col_alertas:
+        with col2:
             st.markdown("#### 🚨 Alertas de Conciliação")
 
             auto_sim = relatorio_editado[relatorio_editado["Conciliado"] == "Sim"]
@@ -151,3 +151,5 @@ if uploaded_file:
             file_name="relatorio_mensal.csv",
             mime="text/csv"
         )
+        )
+
