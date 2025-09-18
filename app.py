@@ -88,7 +88,8 @@ if uploaded_file and not relatorio.empty:
             "Conciliado Manual": st.column_config.CheckboxColumn("Conciliado Manual", help="Marque se você considera este lançamento conciliado")
         },
         use_container_width=True,
-        num_rows="dynamic"
+        num_rows="dynamic",
+        disabled=False  # ✅ permite ordenação por clique
     )
 
     st.download_button(
