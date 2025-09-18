@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from motor_conciliacao import conciliar_lancamentos
+from io import BytesIO
 
 st.set_page_config(page_title="Conciliador Autotrac", layout="wide")
 st.title("🔗 Conciliação de Notas e Duplicatas")
@@ -15,10 +16,15 @@ if uploaded_file:
         st.subheader("📊 Relatório de Conciliação")
         st.dataframe(relatorio)
 
-        relatorio_excel = relatorio.to_excel(index=False, engine='openpyxl')
+        # Exporta para Excel em memória
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            relatorio.to_excel(writer, index=False)
+        output.seek(0)
+
         st.download_button(
             label="📥 Baixar relatório em Excel",
-            data=relatorio_excel,
+            data=output,
             file_name="relatorio_conciliacao.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
