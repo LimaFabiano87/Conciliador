@@ -84,7 +84,9 @@ if uploaded_file and not relatorio.empty:
         num_rows="dynamic"
     )
 
-    # Exportação por mês
+    st.subheader("📋 Visualização ordenável")
+    st.dataframe(relatorio_editado, use_container_width=True)
+
     st.download_button(
         label="📥 Baixar relatório por mês",
         data=relatorio_editado.to_csv(index=False).encode("utf-8"),
@@ -92,7 +94,6 @@ if uploaded_file and not relatorio.empty:
         mime="text/csv"
     )
 
-    # Alerta automático clicável
     st.markdown("---")
     st.subheader("🚨 Alertas Automáticos")
 
