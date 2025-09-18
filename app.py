@@ -43,7 +43,7 @@ if uploaded_file:
     if not relatorio.empty:
         relatorio["Conciliado Manual"] = False
 
-        # ✅ Editor interativo
+        # Editor interativo
         st.subheader("📄 Lançamentos Importados")
         relatorio_editado = st.data_editor(
             relatorio,
@@ -57,57 +57,59 @@ if uploaded_file:
             num_rows="dynamic"
         )
 
-        # ✅ Gráficos e alertas reativos lado a lado
+        # Gráficos e alertas lado a lado, acima dos lançamentos
         st.markdown("---")
-        col_grafico, col_alerta = st.columns(2)
+        st.subheader("📊 Visão Geral da Conciliação")
 
-        with col_grafico:
-            st.markdown("### 📊 Conciliação Automática vs Manual")
+        col_visual, col_alertas = st.columns(2)
 
+        with col_visual:
+            st.markdown("#### Conciliação Automática")
             auto_data = relatorio_editado["Conciliado"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
             fig_auto = px.pie(
                 auto_data,
                 names="Status",
                 values="Quantidade",
-                title="Conciliação Automática",
                 color="Status",
+                title="Automática",
                 color_discrete_map={"Sim": "#2ECC71", "Não": "#E74C3C"}
             )
             fig_auto.update_traces(textinfo="percent+label", textposition="inside")
             fig_auto.update_layout(title_x=0.5)
             st.plotly_chart(fig_auto, use_container_width=True)
 
+            st.markdown("#### Conciliação Manual")
             manual_data = relatorio_editado["Conciliado Manual"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
             manual_data["Status"] = manual_data["Status"].map({True: "Conciliado", False: "Não Conciliado"})
             fig_manual = px.pie(
                 manual_data,
                 names="Status",
                 values="Quantidade",
-                title="Conciliação Manual",
                 color="Status",
+                title="Manual",
                 color_discrete_map={"Conciliado": "#3498DB", "Não Conciliado": "#E67E22"}
             )
             fig_manual.update_traces(textinfo="percent+label", textposition="inside")
             fig_manual.update_layout(title_x=0.5)
             st.plotly_chart(fig_manual, use_container_width=True)
 
-        with col_alerta:
-            st.markdown("### 🚨 Alertas de Conciliação")
+        with col_alertas:
+            st.markdown("#### 🚨 Alertas de Conciliação")
 
             auto_sim = relatorio_editado[relatorio_editado["Conciliado"] == "Sim"]
             auto_nao = relatorio_editado[relatorio_editado["Conciliado"] == "Não"]
             manual_sim = relatorio_editado[relatorio_editado["Conciliado Manual"] == True]
             manual_nao = relatorio_editado[relatorio_editado["Conciliado Manual"] == False]
 
-            st.markdown("**🔄 Conciliação Automática**")
+            st.markdown("**🔄 Automática**")
             st.metric("Conciliados", len(auto_sim))
             st.metric("Não conciliados", len(auto_nao))
 
-            st.markdown("**📝 Conciliação Manual**")
+            st.markdown("**📝 Manual**")
             st.metric("Marcados como conciliados", len(manual_sim))
             st.metric("Ainda não marcados", len(manual_nao))
 
-        # ✅ Ocultar/exibir filtros
+        # Ocultar/exibir filtros
         st.markdown("---")
         mostrar_filtros = st.checkbox("🎛️ Exibir filtros avançados", value=True)
 
