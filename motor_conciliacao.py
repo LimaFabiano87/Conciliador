@@ -1,8 +1,14 @@
 import pandas as pd
 import re
+from io import BytesIO
 
 def conciliar_lancamentos(file):
-    df = pd.read_excel(file, engine='openpyxl', header=7)
+    # Converte o arquivo enviado para um buffer de bytes
+    buffer = BytesIO(file.read())
+
+    # Lê o Excel corretamente via buffer
+    df = pd.read_excel(buffer, engine='openpyxl', header=7)
+
     df['Débito'] = pd.to_numeric(df['Débito'], errors='coerce').fillna(0)
     df['Crédito'] = pd.to_numeric(df['Crédito'], errors='coerce').fillna(0)
     df['Histórico'] = df['Histórico'].astype(str)
