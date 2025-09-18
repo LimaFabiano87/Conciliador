@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from motor_conciliacao import conciliar_lancamentos
-from io import BytesIO
 import plotly.express as px
 
 st.set_page_config(page_title="Ferreira Lima Contabilidade Digital", page_icon="📊", layout="wide")
@@ -44,12 +43,28 @@ if uploaded_file:
     if not relatorio.empty:
         relatorio["Conciliado Manual"] = False
 
-        # ✅ Gráficos logo após upload
-        st.subheader("📊 Conciliação Automática vs Manual")
-        col_auto, col_manual = st.columns(2)
+        # ✅ Editor interativo
+        st.subheader("📄 Lançamentos Importados")
+        relatorio_editado = st.data_editor(
+            relatorio,
+            column_config={
+                "Conciliado Manual": st.column_config.CheckboxColumn(
+                    "Conciliado Manual",
+                    help="Marque se você considera este lançamento conciliado"
+                )
+            },
+            use_container_width=True,
+            num_rows="dynamic"
+        )
 
-        with col_auto:
-            auto_data = relatorio["Conciliado"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
+        # ✅ Gráficos e alertas reativos lado a lado
+        st.markdown("---")
+        col_grafico, col_alerta = st.columns(2)
+
+        with col_grafico:
+            st.markdown("### 📊 Conciliação Automática vs Manual")
+
+            auto_data = relatorio_editado["Conciliado"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
             fig_auto = px.pie(
                 auto_data,
                 names="Status",
@@ -62,8 +77,7 @@ if uploaded_file:
             fig_auto.update_layout(title_x=0.5)
             st.plotly_chart(fig_auto, use_container_width=True)
 
-        with col_manual:
-            manual_data = relatorio["Conciliado Manual"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
+            manual_data = relatorio_editado["Conciliado Manual"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
             manual_data["Status"] = manual_data["Status"].map({True: "Conciliado", False: "Não Conciliado"})
             fig_manual = px.pie(
                 manual_data,
@@ -77,71 +91,60 @@ if uploaded_file:
             fig_manual.update_layout(title_x=0.5)
             st.plotly_chart(fig_manual, use_container_width=True)
 
-        # ✅ Alertas logo abaixo dos gráficos
-        st.markdown("---")
-        st.subheader("🚨 Alertas de Conciliação")
+        with col_alerta:
+            st.markdown("### 🚨 Alertas de Conciliação")
 
-        col1, col2 = st.columns(2)
+            auto_sim = relatorio_editado[relatorio_editado["Conciliado"] == "Sim"]
+            auto_nao = relatorio_editado[relatorio_editado["Conciliado"] == "Não"]
+            manual_sim = relatorio_editado[relatorio_editado["Conciliado Manual"] == True]
+            manual_nao = relatorio_editado[relatorio_editado["Conciliado Manual"] == False]
 
-        with col1:
             st.markdown("**🔄 Conciliação Automática**")
-            auto_sim = relatorio[relatorio["Conciliado"] == "Sim"]
-            auto_nao = relatorio[relatorio["Conciliado"] == "Não"]
             st.metric("Conciliados", len(auto_sim))
             st.metric("Não conciliados", len(auto_nao))
 
-        with col2:
             st.markdown("**📝 Conciliação Manual**")
-            manual_sim = relatorio[relatorio["Conciliado Manual"] == True]
-            manual_nao = relatorio[relatorio["Conciliado Manual"] == False]
             st.metric("Marcados como conciliados", len(manual_sim))
             st.metric("Ainda não marcados", len(manual_nao))
 
-        # ✅ Filtros e tabela abaixo dos alertas
+        # ✅ Ocultar/exibir filtros
         st.markdown("---")
-        st.subheader("🎛️ Filtros")
+        mostrar_filtros = st.checkbox("🎛️ Exibir filtros avançados", value=True)
 
-        relatorio["Mês"] = pd.to_datetime(relatorio["Data Pagamento"], format="%d/%m/%Y", errors="coerce").dt.to_period("M").astype(str)
+        if mostrar_filtros:
+            st.subheader("🎛️ Filtros")
 
-        def format_mes(m):
-            try:
-                return pd.to_datetime(m).strftime('%B/%Y')
-            except:
-                return m
+            relatorio_editado["Mês"] = pd.to_datetime(relatorio_editado["Data Pagamento"], format="%d/%m/%Y", errors="coerce").dt.to_period("M").astype(str)
 
-        confiabilidades = st.multiselect("Confiabilidade", relatorio["Confiabilidade"].unique(), default=relatorio["Confiabilidade"].unique())
-        fornecedores = st.multiselect("Fornecedor", relatorio["Fornecedor"].unique(), default=relatorio["Fornecedor"].unique())
-        meses = st.multiselect("Mês", relatorio["Mês"].unique(), default=relatorio["Mês"].unique(), format_func=format_mes)
+            def format_mes(m):
+                try:
+                    return pd.to_datetime(m).strftime('%B/%Y')
+                except:
+                    return m
 
-        filtro_manual = st.selectbox("📝 Filtrar por conciliação manual", ["Todos", "Conciliados Manualmente", "Não Conciliados Manualmente"])
+            confiabilidades = st.multiselect("Confiabilidade", relatorio_editado["Confiabilidade"].unique(), default=relatorio_editado["Confiabilidade"].unique())
+            fornecedores = st.multiselect("Fornecedor", relatorio_editado["Fornecedor"].unique(), default=relatorio_editado["Fornecedor"].unique())
+            meses = st.multiselect("Mês", relatorio_editado["Mês"].unique(), default=relatorio_editado["Mês"].unique(), format_func=format_mes)
 
-        relatorio_filtrado = relatorio[
-            (relatorio["Confiabilidade"].isin(confiabilidades)) &
-            (relatorio["Fornecedor"].isin(fornecedores)) &
-            (relatorio["Mês"].isin(meses))
-        ]
+            filtro_manual = st.selectbox("📝 Filtrar por conciliação manual", ["Todos", "Conciliados Manualmente", "Não Conciliados Manualmente"])
 
-        st.subheader("📄 Lançamentos Importados")
-        relatorio_editado = st.data_editor(
-            relatorio_filtrado,
-            column_config={
-                "Conciliado Manual": st.column_config.CheckboxColumn(
-                    "Conciliado Manual",
-                    help="Marque se você considera este lançamento conciliado"
-                )
-            },
-            use_container_width=True,
-            num_rows="dynamic"
-        )
+            relatorio_filtrado = relatorio_editado[
+                (relatorio_editado["Confiabilidade"].isin(confiabilidades)) &
+                (relatorio_editado["Fornecedor"].isin(fornecedores)) &
+                (relatorio_editado["Mês"].isin(meses))
+            ]
 
-        if filtro_manual == "Conciliados Manualmente":
-            relatorio_editado = relatorio_editado[relatorio_editado["Conciliado Manual"] == True]
-        elif filtro_manual == "Não Conciliados Manualmente":
-            relatorio_editado = relatorio_editado[relatorio_editado["Conciliado Manual"] == False]
+            if filtro_manual == "Conciliados Manualmente":
+                relatorio_filtrado = relatorio_filtrado[relatorio_filtrado["Conciliado Manual"] == True]
+            elif filtro_manual == "Não Conciliados Manualmente":
+                relatorio_filtrado = relatorio_filtrado[relatorio_filtrado["Conciliado Manual"] == False]
 
-        st.download_button(
-            label="📥 Baixar relatório por mês",
-            data=relatorio_editado.to_csv(index=False).encode("utf-8"),
-            file_name=f"relatorio_{meses[0] if meses else 'mensal'}.csv",
-            mime="text/csv"
-        )
+            st.subheader("📄 Lançamentos Filtrados")
+            st.dataframe(relatorio_filtrado, use_container_width=True)
+
+            st.download_button(
+                label="📥 Baixar relatório por mês",
+                data=relatorio_filtrado.to_csv(index=False).encode("utf-8"),
+                file_name=f"relatorio_{meses[0] if meses else 'mensal'}.csv",
+                mime="text/csv"
+            )
