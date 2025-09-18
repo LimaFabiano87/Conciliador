@@ -56,7 +56,7 @@ if uploaded_file:
             num_rows="dynamic"
         )
 
-        # Gráficos e alertas acima dos lançamentos
+        # ✅ Gráficos e alertas logo após upload
         st.markdown("---")
         st.subheader("📊 Visão Geral da Conciliação")
 
@@ -108,7 +108,7 @@ if uploaded_file:
             st.metric("Marcados como conciliados", len(manual_sim))
             st.metric("Ainda não marcados", len(manual_nao))
 
-        # Filtros ocultáveis
+        # ✅ Filtros ocultáveis
         st.markdown("---")
         mostrar_filtros = st.checkbox("🎛️ Exibir filtros avançados", value=True)
 
@@ -141,7 +141,7 @@ if uploaded_file:
         else:
             relatorio_filtrado = relatorio_editado.copy()
 
-        # Lançamentos sempre visíveis
+        # ✅ Lançamentos sempre visíveis
         st.subheader("📄 Lançamentos Importados")
         st.dataframe(relatorio_filtrado, use_container_width=True)
 
