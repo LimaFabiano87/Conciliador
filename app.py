@@ -3,6 +3,7 @@ import pandas as pd
 from motor_conciliacao import conciliar_lancamentos
 from io import BytesIO
 
+# ✅ Configuração da página
 st.set_page_config(
     page_title="Ferreira Lima Contabilidade Digital",
     page_icon="📊",
@@ -19,6 +20,7 @@ with col2:
 
 st.markdown("---")
 
+# ✅ Upload do arquivo
 uploaded_file = st.file_uploader("📤 Faça upload do relatório do Domínio (.xlsx)", type="xlsx")
 
 if uploaded_file:
@@ -28,31 +30,35 @@ if uploaded_file:
     if not relatorio.empty:
         st.subheader("🎛️ Filtros")
 
+        # ✅ Garantir que a coluna de data está formatada corretamente
+        relatorio["Data Pagamento"] = pd.to_datetime(relatorio["Data Pagamento"], errors="coerce")
+
         # ✅ Filtros interativos
-        tipos = st.multiselect("Tipo de lançamento", options=relatorio["Confiabilidade"].unique(), default=relatorio["Confiabilidade"].unique())
-        confiabilidades = st.multiselect("Confiabilidade", options=relatorio["Confiabilidade"].unique(), default=relatorio["Confiabilidade"].unique())
+        confiabilidades = st.multiselect(
+            "Confiabilidade",
+            options=relatorio["Confiabilidade"].unique(),
+            default=relatorio["Confiabilidade"].unique()
+        )
 
         min_valor = st.number_input("Valor mínimo", min_value=0.0, value=0.0)
         max_valor = st.number_input("Valor máximo", min_value=0.0, value=float(relatorio["Valor Pago"].max()))
 
-        datas = relatorio["Data Pagamento"].dropna()
-        min_data = st.date_input("Data inicial", value=datas.min())
-        max_data = st.date_input("Data final", value=datas.max())
+        datas_validas = relatorio["Data Pagamento"].dropna()
+        min_data = st.date_input("Data inicial", value=datas_validas.min())
+        max_data = st.date_input("Data final", value=datas_validas.max())
 
-      # ✅ Aplicar filtros
-relatorio["Data Pagamento"] = pd.to_datetime(relatorio["Data Pagamento"], errors="coerce")
+        # ✅ Aplicar filtros
+        relatorio_filtrado = relatorio[
+            (relatorio["Confiabilidade"].isin(confiabilidades)) &
+            (relatorio["Valor Pago"] >= min_valor) &
+            (relatorio["Valor Pago"] <= max_valor) &
+            (relatorio["Data Pagamento"].notnull()) &
+            (relatorio["Data Pagamento"] >= pd.to_datetime(min_data)) &
+            (relatorio["Data Pagamento"] <= pd.to_datetime(max_data))
+        ]
 
-relatorio_filtrado = relatorio[
-    (relatorio["Confiabilidade"].isin(confiabilidades)) &
-    (relatorio["Valor Pago"] >= min_valor) &
-    (relatorio["Valor Pago"] <= max_valor) &
-    (relatorio["Data Pagamento"].notnull()) &
-    (relatorio["Data Pagamento"] >= pd.to_datetime(min_data)) &
-    (relatorio["Data Pagamento"] <= pd.to_datetime(max_data))
-]
-
-st.subheader("📊 Relatório de Conciliação Filtrado")
-st.dataframe(relatorio_filtrado, use_container_width=True)
+        st.subheader("📊 Relatório de Conciliação Filtrado")
+        st.dataframe(relatorio_filtrado, use_container_width=True)
 
         # ✅ Exportar relatório filtrado
         output = BytesIO()
