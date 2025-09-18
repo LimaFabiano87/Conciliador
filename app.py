@@ -6,13 +6,34 @@ import plotly.express as px
 
 st.set_page_config(page_title="Ferreira Lima Contabilidade Digital", page_icon="📊", layout="wide")
 
-# Cabeçalho
-col1, col2 = st.columns([1, 6])
-with col1:
-    st.image("https://copilot.microsoft.com/th/id/BCO.ce40fb3b-b861-4175-b43b-9f5108be73e1.png", width=100)
-with col2:
-    st.markdown("## **Ferreira Lima Contabilidade Digital**")
-    st.markdown("#### Sistema inteligente de conciliação de notas e duplicatas")
+# ✅ Estilo visual centralizado
+st.markdown("""
+    <style>
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .logo-container img {
+            width: 140px;
+        }
+        .logo-container .text-block {
+            text-align: center;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+    <div class="logo-container">
+        <img src="https://copilot.microsoft.com/th/id/BCO.ce40fb3b-b861-4175-b43b-9f5108be73e1.png">
+        <div class="text-block">
+            <h2>Ferreira Lima Contabilidade Digital</h2>
+            <h4>Sistema inteligente de conciliação de notas e duplicatas</h4>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
 st.markdown("---")
 
