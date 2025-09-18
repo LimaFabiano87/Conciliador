@@ -28,7 +28,7 @@ with col_grafico:
         relatorio = conciliar_lancamentos(uploaded_file)
         if not relatorio.empty:
             relatorio["Conciliado Manual"] = False
-            relatorio["Status Final"] = relatorio["Conciliado"]  # Inicia com o status automático
+            relatorio["Status Final"] = relatorio["Conciliado"]
             totais = relatorio["Conciliado"].value_counts().reset_index()
             totais.columns = ["Status", "Quantidade"]
             tipo_grafico = st.radio("📈 Escolha o tipo de gráfico", ["Barras", "Pizza"])
@@ -63,18 +63,13 @@ if uploaded_file and not relatorio.empty:
     fornecedores = st.multiselect("Fornecedor", relatorio["Fornecedor"].unique(), default=relatorio["Fornecedor"].unique())
     meses = st.multiselect("Mês", relatorio["Mês"].unique(), default=relatorio["Mês"].unique(), format_func=format_mes)
 
-    mostrar_nao_conciliados_total = st.checkbox("🔍 Mostrar apenas os que ainda não foram conciliados (automático ou manual)", value=False)
+    mostrar_nao_conciliados_total = st.checkbox("🔍 Mostrar apenas os que ainda não foram conciliados", value=False)
 
     relatorio_filtrado = relatorio[
         (relatorio["Confiabilidade"].isin(confiabilidades)) &
         (relatorio["Fornecedor"].isin(fornecedores)) &
         (relatorio["Mês"].isin(meses))
     ]
-
-    if mostrar_nao_conciliados_total:
-        relatorio_filtrado = relatorio_filtrado[
-            (relatorio_filtrado["Status Final"] != "Conciliado")
-        ]
 
     st.subheader("📄 Lançamentos Importados")
     relatorio_editado = st.data_editor(
@@ -90,6 +85,12 @@ if uploaded_file and not relatorio.empty:
         num_rows="dynamic"
     )
 
+    # ✅ Aplicar filtro após edição
+    if mostrar_nao_conciliados_total:
+        relatorio_editado = relatorio_editado[
+            relatorio_editado["Status Final"] != "Conciliado"
+        ]
+
     st.download_button(
         label="📥 Baixar relatório por mês",
         data=relatorio_editado.to_csv(index=False).encode("utf-8"),
@@ -101,7 +102,7 @@ if uploaded_file and not relatorio.empty:
     st.subheader("🚨 Alertas Automáticos")
 
     alertas = relatorio_editado[
-        (relatorio_editado["Status Final"] != "Conciliado")
+        relatorio_editado["Status Final"] != "Conciliado"
     ]
 
     if not alertas.empty:
