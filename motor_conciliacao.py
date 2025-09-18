@@ -15,7 +15,7 @@ def extrair_referencia(texto):
 def extrair_fornecedor(texto):
     texto = texto.upper()
     match = re.search(r'FORNECEDOR[:\s\-]*([A-Z0-9 ]+)', texto)
-    return match.group(1).strip() if match else "Desconhecido"
+    return match.group(1).strip() if match else texto.strip()
 
 def conciliar_lancamentos(file):
     buffer = BytesIO(file.read())
@@ -37,8 +37,11 @@ def conciliar_lancamentos(file):
     for _, pag in pagamentos.iterrows():
         candidatos = notas[
             (abs(notas['Valor'] - pag['Valor']) <= 1) &
-            (notas['Fornecedor'] == pag['Fornecedor'])
+            (notas['Fornecedor'].str.lower().str.contains(pag['Fornecedor'].lower(), na=False))
         ].copy()
+
+        if candidatos.empty:
+            candidatos = notas[(abs(notas['Valor'] - pag['Valor']) <= 1)].copy()
 
         candidatos['DeltaData'] = abs((candidatos['Data'] - pag['Data']).dt.days)
         candidatos = candidatos.sort_values(by='DeltaData')
