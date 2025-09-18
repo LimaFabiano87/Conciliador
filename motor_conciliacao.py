@@ -28,7 +28,6 @@ def conciliar_lancamentos(file):
     df['Valor'] = df['Débito'] + df['Crédito']
     df['Tipo'] = df['Crédito'].apply(lambda x: 'Pagamento' if x > 0 else 'Entrada')
     df['Fornecedor'] = df['Histórico'].apply(extrair_fornecedor)
-
     df[['RefTipo', 'RefNum']] = df['Histórico'].apply(lambda x: pd.Series(extrair_referencia(x)))
 
     notas = df[(df['Tipo'] == 'Entrada') & (df['Valor'] > 0) & df['Data'].notnull()]
@@ -36,8 +35,16 @@ def conciliar_lancamentos(file):
 
     relacionamentos = []
     for _, pag in pagamentos.iterrows():
-        candidatos = notas[(abs(notas['Valor'] - pag['Valor']) <= 1)]
-        for _, nota in candidatos.iterrows():
+        candidatos = notas[
+            (abs(notas['Valor'] - pag['Valor']) <= 1) &
+            (notas['Fornecedor'] == pag['Fornecedor'])
+        ].copy()
+
+        candidatos['DeltaData'] = abs((candidatos['Data'] - pag['Data']).dt.days)
+        candidatos = candidatos.sort_values(by='DeltaData')
+
+        if not candidatos.empty:
+            nota = candidatos.iloc[0]
             diff = abs(pag['Valor'] - nota['Valor'])
             confiabilidade = 'Alta' if diff == 0 else 'Média'
             conciliado = 'Sim' if diff == 0 else 'Não'
