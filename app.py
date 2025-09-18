@@ -56,7 +56,7 @@ if uploaded_file:
             num_rows="dynamic"
         )
 
-        # Gráficos e alertas lado a lado
+        # Gráficos e alertas acima dos lançamentos
         st.markdown("---")
         st.subheader("📊 Visão Geral da Conciliação")
 
