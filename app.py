@@ -37,7 +37,7 @@ st.markdown("""
 
 st.markdown("---")
 
-# Upload + gráfico
+# Upload + gráficos
 col_upload, col_grafico = st.columns([2, 3])
 with col_upload:
     uploaded_file = st.file_uploader("📤 Faça upload do relatório do Domínio (.xlsx)", type="xlsx")
@@ -51,15 +51,13 @@ with col_grafico:
             relatorio["Conciliado Manual"] = False
 
             # Gráfico automático
-            auto_data = relatorio["Conciliado"].value_counts().reset_index()
-            auto_data.columns = ["Status", "Quantidade"]
+            auto_data = relatorio["Conciliado"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
             fig_auto = px.pie(auto_data, names="Status", values="Quantidade", title="Conciliação Automática")
             st.plotly_chart(fig_auto, use_container_width=True)
 
             # Gráfico manual
-            manual_data = relatorio["Conciliado Manual"].value_counts().reset_index()
-            manual_data["Status"] = manual_data["index"].map({True: "Conciliado", False: "Não Conciliado"})
-            manual_data.columns = ["index", "Quantidade", "Status"]
+            manual_data = relatorio["Conciliado Manual"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
+            manual_data["Status"] = manual_data["Status"].map({True: "Conciliado", False: "Não Conciliado"})
             fig_manual = px.pie(manual_data, names="Status", values="Quantidade", title="Conciliação Manual")
             st.plotly_chart(fig_manual, use_container_width=True)
 
