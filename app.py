@@ -43,7 +43,7 @@ if uploaded_file:
     if not relatorio.empty:
         relatorio["Conciliado Manual"] = False
 
-        # Editor interativo
+        # Editor interativo (executado primeiro, mas exibido depois)
         relatorio_editado = st.data_editor(
             relatorio,
             column_config={
@@ -56,12 +56,11 @@ if uploaded_file:
             num_rows="dynamic"
         )
 
-        # ✅ Gráficos e alertas logo após upload
+        # ✅ Visão Geral da Conciliação no topo
         st.markdown("---")
         st.subheader("📊 Visão Geral da Conciliação")
 
-        col1, col2 = st.columns([2, 1])  # Gráficos à esquerda, alertas à direita
-
+        col1, col2 = st.columns([2, 1])
         with col1:
             st.markdown("#### Conciliação Automática")
             auto_data = relatorio_editado["Conciliado"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
@@ -94,7 +93,6 @@ if uploaded_file:
 
         with col2:
             st.markdown("#### 🚨 Alertas de Conciliação")
-
             auto_sim = relatorio_editado[relatorio_editado["Conciliado"] == "Sim"]
             auto_nao = relatorio_editado[relatorio_editado["Conciliado"] == "Não"]
             manual_sim = relatorio_editado[relatorio_editado["Conciliado Manual"] == True]
@@ -141,7 +139,7 @@ if uploaded_file:
         else:
             relatorio_filtrado = relatorio_editado.copy()
 
-        # ✅ Lançamentos sempre visíveis
+        # ✅ Tabela final sempre visível
         st.subheader("📄 Lançamentos Importados")
         st.dataframe(relatorio_filtrado, use_container_width=True)
 
@@ -151,5 +149,3 @@ if uploaded_file:
             file_name="relatorio_mensal.csv",
             mime="text/csv"
         )
-
-
