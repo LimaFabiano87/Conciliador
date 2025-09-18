@@ -43,7 +43,7 @@ if uploaded_file:
     if not relatorio.empty:
         relatorio["Conciliado Manual"] = False
 
-        # ✅ Editor interativo
+        # Editor interativo
         relatorio_editado = st.data_editor(
             relatorio,
             column_config={
@@ -56,21 +56,21 @@ if uploaded_file:
             num_rows="dynamic"
         )
 
-        # ✅ Gráficos e alertas acima dos lançamentos
+        # Gráficos e alertas acima dos lançamentos
         st.markdown("---")
         st.subheader("📊 Visão Geral da Conciliação")
 
-        col_visual, col_alertas = st.columns(2)
+        col_graficos, col_alertas = st.columns(2)
 
-        with col_visual:
+        with col_graficos:
             st.markdown("#### Conciliação Automática")
             auto_data = relatorio_editado["Conciliado"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
             fig_auto = px.pie(
                 auto_data,
                 names="Status",
                 values="Quantidade",
-                color="Status",
                 title="Automática",
+                color="Status",
                 color_discrete_map={"Sim": "#2ECC71", "Não": "#E74C3C"}
             )
             fig_auto.update_traces(textinfo="percent+label", textposition="inside")
@@ -84,8 +84,8 @@ if uploaded_file:
                 manual_data,
                 names="Status",
                 values="Quantidade",
-                color="Status",
                 title="Manual",
+                color="Status",
                 color_discrete_map={"Conciliado": "#3498DB", "Não Conciliado": "#E67E22"}
             )
             fig_manual.update_traces(textinfo="percent+label", textposition="inside")
@@ -108,7 +108,7 @@ if uploaded_file:
             st.metric("Marcados como conciliados", len(manual_sim))
             st.metric("Ainda não marcados", len(manual_nao))
 
-        # ✅ Ocultar/exibir filtros
+        # Filtros ocultáveis
         st.markdown("---")
         mostrar_filtros = st.checkbox("🎛️ Exibir filtros avançados", value=True)
 
@@ -126,7 +126,6 @@ if uploaded_file:
             confiabilidades = st.multiselect("Confiabilidade", relatorio_editado["Confiabilidade"].unique(), default=relatorio_editado["Confiabilidade"].unique())
             fornecedores = st.multiselect("Fornecedor", relatorio_editado["Fornecedor"].unique(), default=relatorio_editado["Fornecedor"].unique())
             meses = st.multiselect("Mês", relatorio_editado["Mês"].unique(), default=relatorio_editado["Mês"].unique(), format_func=format_mes)
-
             filtro_manual = st.selectbox("📝 Filtrar por conciliação manual", ["Todos", "Conciliados Manualmente", "Não Conciliados Manualmente"])
 
             relatorio_filtrado = relatorio_editado[
@@ -139,13 +138,16 @@ if uploaded_file:
                 relatorio_filtrado = relatorio_filtrado[relatorio_filtrado["Conciliado Manual"] == True]
             elif filtro_manual == "Não Conciliados Manualmente":
                 relatorio_filtrado = relatorio_filtrado[relatorio_filtrado["Conciliado Manual"] == False]
+        else:
+            relatorio_filtrado = relatorio_editado.copy()
 
-            st.subheader("📄 Lançamentos Filtrados")
-            st.dataframe(relatorio_filtrado, use_container_width=True)
+        # Lançamentos sempre visíveis
+        st.subheader("📄 Lançamentos Importados")
+        st.dataframe(relatorio_filtrado, use_container_width=True)
 
-            st.download_button(
-                label="📥 Baixar relatório por mês",
-                data=relatorio_filtrado.to_csv(index=False).encode("utf-8"),
-                file_name=f"relatorio_{meses[0] if meses else 'mensal'}.csv",
-                mime="text/csv"
-            )
+        st.download_button(
+            label="📥 Baixar relatório por mês",
+            data=relatorio_filtrado.to_csv(index=False).encode("utf-8"),
+            file_name="relatorio_mensal.csv",
+            mime="text/csv"
+        )
