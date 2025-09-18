@@ -3,11 +3,8 @@ import re
 from io import BytesIO
 
 def conciliar_lancamentos(file):
-    # Converte o arquivo enviado para um buffer de bytes
     buffer = BytesIO(file.read())
-
-    # Lê o Excel corretamente via buffer
-    df = pd.read_excel(buffer, engine=None, header=7)
+    df = pd.read_excel(buffer, header=7)
 
     df['Débito'] = pd.to_numeric(df['Débito'], errors='coerce').fillna(0)
     df['Crédito'] = pd.to_numeric(df['Crédito'], errors='coerce').fillna(0)
@@ -48,4 +45,5 @@ def conciliar_lancamentos(file):
             })
 
     return pd.DataFrame(relacionamentos)
+
 
