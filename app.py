@@ -4,11 +4,7 @@ from motor_conciliacao import conciliar_lancamentos
 from io import BytesIO
 import plotly.express as px
 
-st.set_page_config(
-    page_title="Ferreira Lima Contabilidade Digital",
-    page_icon="📊",
-    layout="wide"
-)
+st.set_page_config(page_title="Ferreira Lima Contabilidade Digital", page_icon="📊", layout="wide")
 
 # Cabeçalho
 col1, col2 = st.columns([1, 6])
@@ -80,21 +76,12 @@ if uploaded_file and not relatorio.empty:
             (relatorio_filtrado["Conciliado Manual"] == False)
         ]
 
-    # ✅ Visualização unificada com ordenação por clique
     st.subheader("📄 Lançamentos Importados")
-    relatorio_editado = st.data_editor(
-        relatorio_filtrado,
-        column_config={
-            "Conciliado Manual": st.column_config.CheckboxColumn("Conciliado Manual", help="Marque se você considera este lançamento conciliado")
-        },
-        use_container_width=True,
-        num_rows="dynamic",
-        disabled=False  # ✅ permite ordenação por clique
-    )
+    st.dataframe(relatorio_filtrado, use_container_width=True)
 
     st.download_button(
         label="📥 Baixar relatório por mês",
-        data=relatorio_editado.to_csv(index=False).encode("utf-8"),
+        data=relatorio_filtrado.to_csv(index=False).encode("utf-8"),
         file_name=f"relatorio_{meses[0] if meses else 'mensal'}.csv",
         mime="text/csv"
     )
@@ -102,9 +89,9 @@ if uploaded_file and not relatorio.empty:
     st.markdown("---")
     st.subheader("🚨 Alertas Automáticos")
 
-    alertas = relatorio_editado[
-        (relatorio_editado["Conciliado"] == "Não") &
-        (relatorio_editado["Conciliado Manual"] == False)
+    alertas = relatorio_filtrado[
+        (relatorio_filtrado["Conciliado"] == "Não") &
+        (relatorio_filtrado["Conciliado Manual"] == False)
     ]
 
     if not alertas.empty:
