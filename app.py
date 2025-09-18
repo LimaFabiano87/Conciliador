@@ -40,13 +40,14 @@ if uploaded_file:
         max_data = st.date_input("Data final", value=datas.max())
 
         # ✅ Aplicar filtros
-        relatorio_filtrado = relatorio[
-            (relatorio["Confiabilidade"].isin(confiabilidades)) &
-            (relatorio["Valor Pago"] >= min_valor) &
-            (relatorio["Valor Pago"] <= max_valor) &
-            (relatorio["Data Pagamento"] >= pd.to_datetime(min_data)) &
-            (relatorio["Data Pagamento"] <= pd.to_datetime(max_data))
-        ]
+       relatorio_filtrado = relatorio[
+    (relatorio["Confiabilidade"].isin(confiabilidades)) &
+    (relatorio["Valor Pago"] >= min_valor) &
+    (relatorio["Valor Pago"] <= max_valor) &
+    (relatorio["Data Pagamento"].notnull()) &
+    (relatorio["Data Pagamento"] >= pd.to_datetime(min_data)) &
+    (relatorio["Data Pagamento"] <= pd.to_datetime(max_data))
+]
 
         st.subheader("📊 Relatório de Conciliação Filtrado")
         st.dataframe(relatorio_filtrado, use_container_width=True)
@@ -65,3 +66,4 @@ if uploaded_file:
         )
     else:
         st.warning("Nenhum vínculo encontrado com os critérios atuais.")
+
