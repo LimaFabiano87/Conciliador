@@ -44,20 +44,6 @@ if uploaded_file:
     if not relatorio.empty:
         relatorio["Conciliado Manual"] = False
 
-        st.markdown("### 📊 Conciliação Automática")
-        auto_data = relatorio["Conciliado"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
-        fig_auto = px.pie(
-            auto_data,
-            names="Status",
-            values="Quantidade",
-            title="Conciliação Automática",
-            color="Status",
-            color_discrete_map={"Sim": "#2ECC71", "Não": "#E74C3C"}
-        )
-        fig_auto.update_traces(textinfo="percent+label", textposition="inside")
-        fig_auto.update_layout(title_x=0.5)
-        st.plotly_chart(fig_auto, use_container_width=True)
-
         st.markdown("---")
         st.subheader("🎛️ Filtros")
 
@@ -108,21 +94,38 @@ if uploaded_file:
         )
 
         st.markdown("---")
-        st.subheader("📊 Conciliação Manual Atualizada")
+        st.subheader("📊 Conciliação Automática vs Manual")
 
-        manual_data = relatorio_editado["Conciliado Manual"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
-        manual_data["Status"] = manual_data["Status"].map({True: "Conciliado", False: "Não Conciliado"})
-        fig_manual = px.pie(
-            manual_data,
-            names="Status",
-            values="Quantidade",
-            title="Conciliação Manual",
-            color="Status",
-            color_discrete_map={"Conciliado": "#3498DB", "Não Conciliado": "#E67E22"}
-        )
-        fig_manual.update_traces(textinfo="percent+label", textposition="inside")
-        fig_manual.update_layout(title_x=0.5)
-        st.plotly_chart(fig_manual, use_container_width=True)
+        col_auto, col_manual = st.columns(2)
+
+        with col_auto:
+            auto_data = relatorio_editado["Conciliado"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
+            fig_auto = px.pie(
+                auto_data,
+                names="Status",
+                values="Quantidade",
+                title="Conciliação Automática",
+                color="Status",
+                color_discrete_map={"Sim": "#2ECC71", "Não": "#E74C3C"}
+            )
+            fig_auto.update_traces(textinfo="percent+label", textposition="inside")
+            fig_auto.update_layout(title_x=0.5)
+            st.plotly_chart(fig_auto, use_container_width=True)
+
+        with col_manual:
+            manual_data = relatorio_editado["Conciliado Manual"].value_counts().rename_axis("Status").reset_index(name="Quantidade")
+            manual_data["Status"] = manual_data["Status"].map({True: "Conciliado", False: "Não Conciliado"})
+            fig_manual = px.pie(
+                manual_data,
+                names="Status",
+                values="Quantidade",
+                title="Conciliação Manual",
+                color="Status",
+                color_discrete_map={"Conciliado": "#3498DB", "Não Conciliado": "#E67E22"}
+            )
+            fig_manual.update_traces(textinfo="percent+label", textposition="inside")
+            fig_manual.update_layout(title_x=0.5)
+            st.plotly_chart(fig_manual, use_container_width=True)
 
         st.markdown("---")
         st.subheader("🚨 Alertas de Conciliação")
