@@ -54,8 +54,7 @@ if uploaded_file and not relatorio.empty:
     st.markdown("---")
     st.subheader("🎛️ Filtros")
 
-    relatorio["Data Pagamento"] = pd.to_datetime(relatorio["Data Pagamento"], errors="coerce")
-    relatorio["Mês"] = relatorio["Data Pagamento"].dt.to_period("M").astype(str)
+    relatorio["Mês"] = pd.to_datetime(relatorio["Data Pagamento"], format="%d/%m/%Y", errors="coerce").dt.to_period("M").astype(str)
 
     confiabilidades = st.multiselect("Confiabilidade", relatorio["Confiabilidade"].unique(), default=relatorio["Confiabilidade"].unique())
     fornecedores = st.multiselect("Fornecedor", relatorio["Fornecedor"].unique(), default=relatorio["Fornecedor"].unique())
